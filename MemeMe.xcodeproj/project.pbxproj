@@ -87,17 +87,17 @@
 		A49E68321AC16F46004D142F /* MemeMe */ = {
 			isa = PBXGroup;
 			children = (
+				A49E683E1AC16F46004D142F /* LaunchScreen.xib */,
+				A49E68391AC16F46004D142F /* Main.storyboard */,
+				A49E68351AC16F46004D142F /* AppDelegate.swift */,
 				A49E68371AC16F46004D142F /* ViewController.swift */,
 				A49E68581AC192E2004D142F /* MemeCollectionViewController.swift */,
 				A4BCD58E1AC1ADDC009899E5 /* MemeCollectionViewCell.swift */,
 				A49E685A1AC192E2004D142F /* MemeTableViewController.swift */,
 				A49E68591AC192E2004D142F /* MemeDetailViewController.swift */,
-				A49E68351AC16F46004D142F /* AppDelegate.swift */,
-				A49E68391AC16F46004D142F /* Main.storyboard */,
-				A49E683C1AC16F46004D142F /* Images.xcassets */,
-				A49E683E1AC16F46004D142F /* LaunchScreen.xib */,
-				A49E68331AC16F46004D142F /* Supporting Files */,
 				A49E68551AC17FCE004D142F /* Meme.swift */,
+				A49E683C1AC16F46004D142F /* Images.xcassets */,
+				A49E68331AC16F46004D142F /* Supporting Files */,
 			);
 			path = MemeMe;
 			sourceTree = "<group>";

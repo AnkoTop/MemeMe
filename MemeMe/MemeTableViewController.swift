@@ -21,9 +21,9 @@ class MemeTableViewController: UITableViewController {
     }
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        // return the # of memes
         return self.memes.count
     }
-
     
     
     @IBAction func addMeme(sender: AnyObject) {

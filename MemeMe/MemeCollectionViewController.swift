@@ -16,12 +16,12 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         // retrieve the memes stored in AppDelegate
         let object = UIApplication.sharedApplication().delegate
         let appDelegate = object as AppDelegate
         memes = appDelegate.memes
     }
-
     
     
     @IBAction func AddMeme(sender: UIBarButtonItem) {
@@ -35,9 +35,11 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     }
 
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+        // fill the cells with available memes
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("MemeCollectionCell", forIndexPath: indexPath) as MemeCollectionViewCell
         let meme = self.memes[indexPath.item]
         cell.topText.text = meme.topText
+        cell.bottomText.text = meme.bottomText
         cell.memedImage.image = meme.memedImage
         
         return cell

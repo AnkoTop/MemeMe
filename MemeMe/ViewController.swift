@@ -25,12 +25,15 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var newMedia = false
     var textEditable = false
     var moveKeyboard = false
+    var memedImage: UIImage!
     
+    var memes: [Meme]!
     
     // set the common text attributes
     let memeTextAttributes = [
         NSStrokeColorAttributeName : UIColor.blackColor(),
         NSForegroundColorAttributeName : UIColor.whiteColor(),
+        // default fontsize 40; with shrink to fit to minimum 26
         NSFontAttributeName : UIFont(name: "HelveticaNeue-CondensedBlack", size: 40)!,
         NSStrokeWidthAttributeName : -3.0
         
@@ -40,6 +43,16 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // retrieve the memes stored in AppDelegate
+        let object = UIApplication.sharedApplication().delegate
+        let appDelegate = object as AppDelegate
+        memes = appDelegate.memes
+        // if there are any go straight to the sent memes
+        if self.memes.count > 0 {
+            // show the sent memes
+            showMemesTabView()
+        }
         
         
         topText.defaultTextAttributes = memeTextAttributes
@@ -60,14 +73,17 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
+        
          // check if camera is available on device
         cameraButton.enabled = UIImagePickerController.isSourceTypeAvailable    (UIImagePickerControllerSourceType.Camera)
+        
         // subcribe to notifications
         self.subscribeToKeyboardNotifications()
     }
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
+        
         // unsubscribe from notifications
         self.unsubscribeFromKeyboardNotifications()
     }
@@ -75,21 +91,42 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     @IBAction func shareMeme(sender: UIBarButtonItem) {
         // generate a memed image
-        var memedImage = generateMemedImage()
+        memedImage = generateMemedImage()
         // define an instance of the ActivityViewController with a memedImage as an activity item
         let activityViewController = UIActivityViewController(activityItems: [memedImage], applicationActivities: nil)
+        
+        activityViewController.completionWithItemsHandler = saveImage
         //  present the ActivityViewController
-        self.presentViewController(activityViewController, animated: true, completion: saveImage)
-
+        self.presentViewController(activityViewController, animated: true, completion: nil)
     }
     
+    func saveImage(activityType:String!, completed: Bool, returnedItems: [AnyObject]!, error: NSError!) {
+        // create the meme object if the user didn't cancel
+        if completed { let memeImage = Meme(topText: topText.text, bottomText: bottomText.text, originalImage: imageToEdit.image!, memedImage: memedImage)
+           // Add it to the memes array in the Application Delegate
+           let object = UIApplication.sharedApplication().delegate
+           let appDelegate = object as AppDelegate
+           appDelegate.memes.append(memeImage)
+           // show the Sent Memes
+           showMemesTabView()
+        }
+    }
+    
+
+    
     @IBAction func cancelEditMeme(sender: UIBarButtonItem) {
+        // show the sent memes in tabview
+        showMemesTabView()
+    }
+
+    func showMemesTabView(){
         var controller: UITabBarController
         controller = self.storyboard?.instantiateViewControllerWithIdentifier("tabViewer") as UITabBarController
         self.presentViewController(controller, animated: true, completion: nil)
     }
-
+    
     @IBAction func useCamera(sender: UIBarButtonItem) {
+        // use the camera as source for the image
         let imagePickerController = UIImagePickerController()
         imagePickerController.sourceType = UIImagePickerControllerSourceType.Camera
         imagePickerController.cameraCaptureMode = UIImagePickerControllerCameraCaptureMode.Photo
@@ -110,47 +147,36 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     func generateMemedImage() -> UIImage {
         
-        // Hide toolbar and navbar
+        // Hide toolbar and navbar so we have a clear view of the image
         navigationBar.hidden = true
         toolBar.hidden = true
-    
-        UIGraphicsBeginImageContext(self.view.frame.size)
-            self.view.drawViewHierarchyInRect(self.view.frame, afterScreenUpdates: true)
+        
+        // This codes takes a snapshot of the whole view (image + possible blank sides)
+//        UIGraphicsBeginImageContext(self.view.frame.size)
+//            self.view.drawViewHierarchyInRect(self.view.frame, afterScreenUpdates: true)
+//            let memedImage : UIImage = UIGraphicsGetImageFromCurrentImageContext()
+//        UIGraphicsEndImageContext()
+        
+        // this take a snapshot of the picturearea only!
+        UIGraphicsBeginImageContext(self.imageToEdit.frame.size)
+            var ypos = self.imageToEdit.frame.origin.y
+            var xpos = self.imageToEdit.frame.origin.x
+            var rectangle = self.view.frame
+            rectangle.origin.y = -ypos
+            rectangle.origin.x = -xpos
+            self.view.drawViewHierarchyInRect(rectangle, afterScreenUpdates: true)
             let memedImage : UIImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
-        
+       
         // Show toolbar and navbar
         navigationBar.hidden = false
         toolBar.hidden = false
-        
-        // take a snapshot of the picturearea only!
-//        UIGraphicsBeginImageContext(self.imageToEdit.frame.size)
-//        var ypos = self.imageToEdit.frame.origin.y
-//        var xpos = self.imageToEdit.frame.origin.x
-//        var rectangle = self.view.frame
-//        rectangle.origin.y = -ypos
-//        rectangle.origin.x = -xpos
-//        self.view.drawViewHierarchyInRect(rectangle, afterScreenUpdates: true)
-//        let memedImage : UIImage = UIGraphicsGetImageFromCurrentImageContext()
-//        UIGraphicsEndImageContext()
         
         return memedImage
     }
 
     
-    func saveImage() {
-        // first render the memedImag
-        var memedImage = generateMemedImage()
-        // create the meme object
-        let memeImage = Meme(topText: topText.text, bottomText: bottomText.text, originalImage: imageToEdit.image!, memedImage: memedImage)
-        
-        // Add it to the memes array in the Application Delegate
-        let object = UIApplication.sharedApplication().delegate
-        let appDelegate = object as AppDelegate
-        appDelegate.memes.append(memeImage)
-    }
     
-
     
     // Keyboard handling
     func subscribeToKeyboardNotifications() {
@@ -175,8 +201,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     func getKeyboardHeight(notification: NSNotification) -> CGFloat {
+        // get the height of the keyboard so we can shift the view up when it appears
         let userInfo = notification.userInfo
-        let keyboardSize = userInfo![UIKeyboardFrameEndUserInfoKey] as NSValue // of CGRect
+        let keyboardSize = userInfo![UIKeyboardFrameEndUserInfoKey] as NSValue
         return keyboardSize.CGRectValue().height
     }
     
