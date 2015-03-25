@@ -19,5 +19,7 @@ class MemeDetailViewController: UIViewController {
         super.viewDidLoad()
         
         self.memedImage.image = meme.memedImage
-    }    
+    }
+    
+    /* No delete/edit actions here: would be overkill for such a small app */
 }

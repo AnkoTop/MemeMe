@@ -20,6 +20,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     @IBOutlet weak var topText: UITextField!
     @IBOutlet weak var bottomText: UITextField!
+    
     @IBOutlet weak var imageToEdit: UIImageView!
     
     var newMedia = false
@@ -36,10 +37,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         // default fontsize 40; with shrink to fit to minimum 26
         NSFontAttributeName : UIFont(name: "HelveticaNeue-CondensedBlack", size: 40)!,
         NSStrokeWidthAttributeName : -3.0
-        
-    ]
+        ]
     
-
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -49,26 +48,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         let appDelegate = object as AppDelegate
         memes = appDelegate.memes
         // if there are any go straight to the sent memes
-        if self.memes.count > 0 {
-            // show the sent memes
-            showMemesTabView()
-        }
+        if self.memes.count > 0 { showMemesTabView() }
         
-        
-        topText.defaultTextAttributes = memeTextAttributes
-        topText.textAlignment = .Center
-        topText.text = "TOP"
-        topText.delegate = self
-        
-        // easier to see in storyboard
-        topText.backgroundColor = UIColor.clearColor()
-        bottomText.backgroundColor = UIColor.clearColor()
-        
-        bottomText.defaultTextAttributes = memeTextAttributes
-        bottomText.textAlignment = .Center
-        bottomText.text = "BOTTOM"
-        bottomText.delegate = self
-
+        // prepare view for use
+        initializeView()
     }
 
     override func viewWillAppear(animated: Bool) {
@@ -79,6 +62,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         
         // subcribe to notifications
         self.subscribeToKeyboardNotifications()
+        
+        if AppVariables.mustRefreshEdit {
+            AppVariables.mustRefreshEdit = false
+            initializeView()
+        }
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -111,15 +99,43 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
            showMemesTabView()
         }
     }
-    
-
+ 
     
     @IBAction func cancelEditMeme(sender: UIBarButtonItem) {
         // show the sent memes in tabview
         showMemesTabView()
     }
 
+    @IBAction func composeNewMeme(sender: AnyObject) {
+        // Start new Meme; warn user changes to current Meme will be lost if one is being edited already
+        if imageToEdit.image != nil {
+            var composeAlert = UIAlertController(title: "Start a new Meme!", message: "All changes since last Share will be lost.", preferredStyle: UIAlertControllerStyle.Alert)
+            composeAlert.addAction(UIAlertAction(title: "Ok", style: .Default, handler: { (action: UIAlertAction!) in
+                // Start a new meme; initialize view
+                self.initializeView()
+            }))
+            composeAlert.addAction(UIAlertAction(title: "Cancel", style: .Default, handler: { (action: UIAlertAction!) in
+                //no action needed
+            }))
+            presentViewController(composeAlert, animated: true, completion: nil)
+        }
+    }
+    
+    func initializeView(){
+        // set all to intitial state
+        topText.defaultTextAttributes = memeTextAttributes
+        topText.textAlignment = .Center
+        topText.text = "TOP"
+        topText.delegate = self
+        bottomText.defaultTextAttributes = memeTextAttributes
+        bottomText.textAlignment = .Center
+        bottomText.text = "BOTTOM"
+        bottomText.delegate = self
+        imageToEdit.image = nil
+   }
+    
     func showMemesTabView(){
+        //present tabview
         var controller: UITabBarController
         controller = self.storyboard?.instantiateViewControllerWithIdentifier("tabViewer") as UITabBarController
         self.presentViewController(controller, animated: true, completion: nil)
@@ -157,7 +173,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 //            let memedImage : UIImage = UIGraphicsGetImageFromCurrentImageContext()
 //        UIGraphicsEndImageContext()
         
-        // this take a snapshot of the picturearea only!
+        // this code take a snapshot of the picturearea only!
         UIGraphicsBeginImageContext(self.imageToEdit.frame.size)
             var ypos = self.imageToEdit.frame.origin.y
             var xpos = self.imageToEdit.frame.origin.x
@@ -171,12 +187,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         // Show toolbar and navbar
         navigationBar.hidden = false
         toolBar.hidden = false
-        
+    
         return memedImage
     }
-
-    
-    
+   
     
     // Keyboard handling
     func subscribeToKeyboardNotifications() {
@@ -197,7 +211,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func keyboardWillHide(notification: NSNotification) {
         // return view to original position if it has moved
         if moveKeyboard {
-            self.view.frame.origin.y += getKeyboardHeight(notification)}
+            self.view.frame.origin.y += getKeyboardHeight(notification)
+        }
     }
     
     func getKeyboardHeight(notification: NSNotification) -> CGFloat {
@@ -238,9 +253,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             textEditable = true
             shareButton.enabled = true
             imageToEdit.image = image
-            // save the new (original) image from the camera so the user can use it
-            if (newMedia) { UIImageWriteToSavedPhotosAlbum(image, self, nil, nil)}
-            self.dismissViewControllerAnimated(true, completion: nil) }
+            // save the new (original) image from the camera so the user can use it at a later stage by selecting it from the alnbum
+            if (newMedia) { UIImageWriteToSavedPhotosAlbum(image, self, nil, nil) }
+            self.dismissViewControllerAnimated(true, completion: nil)
+        }
     }
 }
 
