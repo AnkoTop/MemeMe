@@ -167,12 +167,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         navigationBar.hidden = true
         toolBar.hidden = true
         
-        // This codes takes a snapshot of the whole view (image + possible blank sides)
-//        UIGraphicsBeginImageContext(self.view.frame.size)
-//            self.view.drawViewHierarchyInRect(self.view.frame, afterScreenUpdates: true)
-//            let memedImage : UIImage = UIGraphicsGetImageFromCurrentImageContext()
-//        UIGraphicsEndImageContext()
-        
         // this code take a snapshot of the picturearea only!
         UIGraphicsBeginImageContext(self.imageToEdit.frame.size)
             var ypos = self.imageToEdit.frame.origin.y
