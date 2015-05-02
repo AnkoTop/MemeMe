@@ -8,11 +8,16 @@
 
 import Foundation
 import UIKit
+import CoreData
 
 
 class MemeCollectionViewController: UICollectionViewController, UICollectionViewDataSource {
 
     var memes: [Meme]!
+    
+    var sharedContext: NSManagedObjectContext {
+        return CoreDataStackManager.sharedInstance().managedObjectContext!
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,8 +31,9 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
         
         // retrieve the memes stored in AppDelegate
         let object = UIApplication.sharedApplication().delegate
-        let appDelegate = object as AppDelegate
+        let appDelegate = object as! AppDelegate
         memes = appDelegate.memes
+        self.collectionView?.reloadData()
     }
  
     
@@ -45,10 +51,12 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
             // now remove the item
             self.collectionView!.deleteItemsAtIndexPaths([indexPath!])
    
-            // remove it also from the stored data
+            // remove it also from the stored & core data
             let object = UIApplication.sharedApplication().delegate
-            let appDelegate = object as AppDelegate
-            appDelegate.memes.removeAtIndex(indexPath!.item)
+            let appDelegate = object as! AppDelegate
+            self.sharedContext.deleteObject(appDelegate.memes.removeAtIndex(indexPath!.item))
+            CoreDataStackManager.sharedInstance().saveContext()
+            
             // if we removed all the memes: return to the edit view
             if self.memes.count == 0 {self.dismissViewControllerAnimated(true, completion: nil)}
         }))
@@ -70,9 +78,10 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
 
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         // fill the cells with available memes
-        let cell = collectionView.dequeueReusableCellWithReuseIdentifier("MemeCollectionCell", forIndexPath: indexPath) as MemeCollectionViewCell
+        let cell = collectionView.dequeueReusableCellWithReuseIdentifier("MemeCollectionCell", forIndexPath: indexPath) as! MemeCollectionViewCell
         let meme = self.memes[indexPath.item]
-        cell.memedImage.image = meme.memedImage
+        //cell.memedImage.image = meme.memedImage
+        cell.memedImage.image = UIImage(data: meme.memedImageBin)
         
         // add longpressure recognizer to detect intention to delete the meme
         let longPress = UILongPressGestureRecognizer(target: self, action: Selector("removeFromCollection:"))
@@ -83,7 +92,7 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     
     override func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
         // show the details of the selected meme
-        let detailController = self.storyboard!.instantiateViewControllerWithIdentifier("MemeDetailViewController")! as MemeDetailViewController
+        let detailController = self.storyboard!.instantiateViewControllerWithIdentifier("MemeDetailViewController")! as! MemeDetailViewController
         detailController.meme = self.memes[indexPath.item]
         // don't show the tabbar in the detailview
         detailController.hidesBottomBarWhenPushed = true

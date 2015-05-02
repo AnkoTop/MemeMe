@@ -7,10 +7,15 @@
 //
 
 import UIKit
+import CoreData
 
 class MemeTableViewController: UITableViewController {
 
     var memes: [Meme]!
+    
+    var sharedContext: NSManagedObjectContext {
+        return CoreDataStackManager.sharedInstance().managedObjectContext!
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,10 +27,13 @@ class MemeTableViewController: UITableViewController {
         // make sure the edit view will be refreshed
         AppVariables.mustRefreshEdit = true
         
+        
         // retrieve the memes stored in AppDelegate       
         let object = UIApplication.sharedApplication().delegate
-        let appDelegate = object as AppDelegate
+        let appDelegate = object as! AppDelegate
         memes = appDelegate.memes
+        self.tableView.reloadData()
+     
     }
   
     
@@ -40,16 +48,17 @@ class MemeTableViewController: UITableViewController {
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("MemeCell", forIndexPath: indexPath) as UITableViewCell
+        let cell = tableView.dequeueReusableCellWithIdentifier("MemeCell", forIndexPath: indexPath) as! UITableViewCell
         let meme = self.memes[indexPath.row]
         cell.textLabel?.text = meme.topText + "..." + meme.bottomText
-        cell.imageView?.image = meme.memedImage
+        //cell.imageView?.image = meme.memedImage
+        cell.imageView?.image = UIImage(data: meme.memedImageBin)
         return cell
     }
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         // show the details of the selected row
-        let detailController = self.storyboard!.instantiateViewControllerWithIdentifier("MemeDetailViewController")! as MemeDetailViewController
+        let detailController = self.storyboard!.instantiateViewControllerWithIdentifier("MemeDetailViewController")! as! MemeDetailViewController
         detailController.meme = self.memes[indexPath.row]
         // don't show the tabbar in the detailview
         detailController.hidesBottomBarWhenPushed = true
@@ -61,10 +70,13 @@ class MemeTableViewController: UITableViewController {
         if editingStyle == UITableViewCellEditingStyle.Delete {
             memes.removeAtIndex(indexPath.row)
             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
-            // update the central meme storage
+  
+            // update the central meme storage & coredata
             let object = UIApplication.sharedApplication().delegate
-            let appDelegate = object as AppDelegate
-            appDelegate.memes.removeAtIndex(indexPath.row)
+            let appDelegate = object as! AppDelegate
+            sharedContext.deleteObject(appDelegate.memes.removeAtIndex(indexPath.row))
+            CoreDataStackManager.sharedInstance().saveContext()
+            
             // if we have removed all: return to the edit view
             if self.memes.count == 0 { self.dismissViewControllerAnimated(true, completion: nil) }
         }

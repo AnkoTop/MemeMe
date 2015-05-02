@@ -3,10 +3,13 @@
 //  MemeMe
 //
 //  Created by Anko Top on 24/03/15.
+//  Added CoreDate on 01/05/2015
+//
 //  Copyright (c) 2015 Anko Top. All rights reserved.
 //
 
 import UIKit
+import CoreData
 
 class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate {
     
@@ -26,6 +29,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var newMedia = false
     var textEditable = false
     var moveKeyboard = false
+    var straightToTab = false
+
     var memedImage: UIImage!
     
     var memes: [Meme]!
@@ -43,12 +48,16 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        //Fetch the saved Memes
+        memes = fetchAllMemes()
         // retrieve the memes stored in AppDelegate
         let object = UIApplication.sharedApplication().delegate
-        let appDelegate = object as AppDelegate
-        memes = appDelegate.memes
+        let appDelegate = object as! AppDelegate
+        appDelegate.memes = memes
         // if there are any go straight to the sent memes
-        if self.memes.count > 0 { showMemesTabView() }
+        if self.memes.count > 0 {
+            straightToTab = true
+        }
         
         // prepare view for use
         initializeView()
@@ -69,11 +78,36 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
     }
     
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(true)
+        
+        if straightToTab {
+            straightToTab = false
+            self.showMemesTabView()
+        }
+    }
+    
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
         
         // unsubscribe from notifications
         self.unsubscribeFromKeyboardNotifications()
+    }
+    
+    
+    
+    var sharedContext: NSManagedObjectContext {
+        return CoreDataStackManager.sharedInstance().managedObjectContext!
+    }
+    
+    func fetchAllMemes() -> [Meme] {
+        let error: NSErrorPointer = nil
+        let fetchRequest = NSFetchRequest(entityName: "Meme")
+        let results = sharedContext.executeFetchRequest(fetchRequest, error: error)
+        if error != nil {
+            println("Error in fetchAllActors(): \(error)")
+        }
+        return results as! [Meme]
     }
 
     
@@ -90,13 +124,17 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     func saveImage(activityType:String!, completed: Bool, returnedItems: [AnyObject]!, error: NSError!) {
         // create the meme object if the user didn't cancel
-        if completed { let memeImage = Meme(topText: topText.text, bottomText: bottomText.text, originalImage: imageToEdit.image!, memedImage: memedImage)
-           // Add it to the memes array in the Application Delegate
-           let object = UIApplication.sharedApplication().delegate
-           let appDelegate = object as AppDelegate
-           appDelegate.memes.append(memeImage)
-           // show the Sent Memes
-           showMemesTabView()
+        if completed { let memeImage = Meme(topText: topText.text, bottomText: bottomText.text, originalImageBin: UIImageJPEGRepresentation(imageToEdit.image!,1), memedImageBin: UIImageJPEGRepresentation(memedImage,1), context:sharedContext)
+            // Add it to the memes array in the Application Delegate
+            let object = UIApplication.sharedApplication().delegate
+            let appDelegate = object as! AppDelegate
+            appDelegate.memes.append(memeImage)
+        
+            //Save it to core data
+            CoreDataStackManager.sharedInstance().saveContext()
+            
+            // show the Sent Memes
+            showMemesTabView()
         }
     }
  
@@ -137,7 +175,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func showMemesTabView(){
         //present tabview
         var controller: UITabBarController
-        controller = self.storyboard?.instantiateViewControllerWithIdentifier("tabViewer") as UITabBarController
+        controller = self.storyboard?.instantiateViewControllerWithIdentifier("tabViewer") as! UITabBarController
         self.presentViewController(controller, animated: true, completion: nil)
     }
     
@@ -212,7 +250,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func getKeyboardHeight(notification: NSNotification) -> CGFloat {
         // get the height of the keyboard so we can shift the view up when it appears
         let userInfo = notification.userInfo
-        let keyboardSize = userInfo![UIKeyboardFrameEndUserInfoKey] as NSValue
+        let keyboardSize = userInfo![UIKeyboardFrameEndUserInfoKey] as! NSValue
         return keyboardSize.CGRectValue().height
     }
     

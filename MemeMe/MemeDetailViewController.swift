@@ -18,7 +18,8 @@ class MemeDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.memedImage.image = meme.memedImage
+        //self.memedImage.image = meme.memedImage
+        self.memedImage.image = UIImage(data: meme.memedImageBin)
     }
     
     /* No delete/edit actions here: would be overkill for such a small app */
