@@ -188,6 +188,8 @@
 		A49E68281AC16F46004D142F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0720;
+				LastSwiftUpdateCheck = 0720;
 				LastUpgradeCheck = 0620;
 				ORGANIZATIONNAME = "Anko Top";
 				TargetAttributes = {

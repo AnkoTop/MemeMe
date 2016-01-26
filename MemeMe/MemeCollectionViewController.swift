@@ -40,11 +40,11 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
    func removeFromCollection(gestureRecognizer: UISwipeGestureRecognizer) {
         // get the path off the longpressed cell
         let location = gestureRecognizer.locationInView(self.collectionView)
-        var indexPath: NSIndexPath? = self.collectionView?.indexPathForItemAtPoint(location)
+        let indexPath: NSIndexPath? = self.collectionView?.indexPathForItemAtPoint(location)
     
         // warn the user of immenent delete
-        var removeAlert = UIAlertController(title: "Remove Meme", message: "The selected meme will be permanently removed.", preferredStyle: UIAlertControllerStyle.Alert)
-        removeAlert.addAction(UIAlertAction(title: "Ok", style: .Default, handler: { (action: UIAlertAction!) in
+        let removeAlert = UIAlertController(title: "Remove Meme", message: "The selected meme will be permanently removed.", preferredStyle: UIAlertControllerStyle.Alert)
+        removeAlert.addAction(UIAlertAction(title: "Ok", style: .Default, handler: { (action: UIAlertAction) in
             var indexpath = self.collectionView?.indexPathsForSelectedItems()
             // first remove it from the datasource (to prevent runtime error on difference in section count)
             self.memes.removeAtIndex(indexPath!.item)
@@ -60,7 +60,7 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
             // if we removed all the memes: return to the edit view
             if self.memes.count == 0 {self.dismissViewControllerAnimated(true, completion: nil)}
         }))
-        removeAlert.addAction(UIAlertAction(title: "Cancel", style: .Default, handler: { (action: UIAlertAction!) in
+        removeAlert.addAction(UIAlertAction(title: "Cancel", style: .Default, handler: { (action: UIAlertAction) in
             //no action needed
         }))
         presentViewController(removeAlert, animated: true, completion: nil)
@@ -92,7 +92,7 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
     
     override func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
         // show the details of the selected meme
-        let detailController = self.storyboard!.instantiateViewControllerWithIdentifier("MemeDetailViewController")! as! MemeDetailViewController
+        let detailController = self.storyboard!.instantiateViewControllerWithIdentifier("MemeDetailViewController") as! MemeDetailViewController
         detailController.meme = self.memes[indexPath.item]
         // don't show the tabbar in the detailview
         detailController.hidesBottomBarWhenPushed = true

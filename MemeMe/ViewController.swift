@@ -103,9 +103,15 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func fetchAllMemes() -> [Meme] {
         let error: NSErrorPointer = nil
         let fetchRequest = NSFetchRequest(entityName: "Meme")
-        let results = sharedContext.executeFetchRequest(fetchRequest, error: error)
+        let results: [AnyObject]?
+        do {
+            results = try sharedContext.executeFetchRequest(fetchRequest)
+        } catch let error1 as NSError {
+            error.memory = error1
+            results = nil
+        }
         if error != nil {
-            println("Error in fetchAllActors(): \(error)")
+            print("Error in fetchAllActors(): \(error)")
         }
         return results as! [Meme]
     }
@@ -147,12 +153,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     @IBAction func composeNewMeme(sender: AnyObject) {
         // Start new Meme; warn user changes to current Meme will be lost if one is being edited already
         if imageToEdit.image != nil {
-            var composeAlert = UIAlertController(title: "Start a new Meme!", message: "All changes since last Share will be lost.", preferredStyle: UIAlertControllerStyle.Alert)
-            composeAlert.addAction(UIAlertAction(title: "Ok", style: .Default, handler: { (action: UIAlertAction!) in
+            let composeAlert = UIAlertController(title: "Start a new Meme!", message: "All changes since last Share will be lost.", preferredStyle: UIAlertControllerStyle.Alert)
+            composeAlert.addAction(UIAlertAction(title: "Ok", style: .Default, handler: { (action: UIAlertAction) in
                 // Start a new meme; initialize view
                 self.initializeView()
             }))
-            composeAlert.addAction(UIAlertAction(title: "Cancel", style: .Default, handler: { (action: UIAlertAction!) in
+            composeAlert.addAction(UIAlertAction(title: "Cancel", style: .Default, handler: { (action: UIAlertAction) in
                 //no action needed
             }))
             presentViewController(composeAlert, animated: true, completion: nil)
@@ -207,8 +213,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         
         // this code take a snapshot of the picturearea only!
         UIGraphicsBeginImageContext(self.imageToEdit.frame.size)
-            var ypos = self.imageToEdit.frame.origin.y
-            var xpos = self.imageToEdit.frame.origin.x
+            let ypos = self.imageToEdit.frame.origin.y
+            let xpos = self.imageToEdit.frame.origin.x
             var rectangle = self.view.frame
             rectangle.origin.y = -ypos
             rectangle.origin.x = -xpos
@@ -280,7 +286,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     
-    func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [NSObject : AnyObject]) {
+    func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
         if let image = info[UIImagePickerControllerOriginalImage] as? UIImage {
             textEditable = true
             shareButton.enabled = true

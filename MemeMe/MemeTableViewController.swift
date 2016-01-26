@@ -48,7 +48,7 @@ class MemeTableViewController: UITableViewController {
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("MemeCell", forIndexPath: indexPath) as! UITableViewCell
+        let cell = tableView.dequeueReusableCellWithIdentifier("MemeCell", forIndexPath: indexPath) 
         let meme = self.memes[indexPath.row]
         cell.textLabel?.text = meme.topText + "..." + meme.bottomText
         //cell.imageView?.image = meme.memedImage
@@ -58,7 +58,7 @@ class MemeTableViewController: UITableViewController {
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         // show the details of the selected row
-        let detailController = self.storyboard!.instantiateViewControllerWithIdentifier("MemeDetailViewController")! as! MemeDetailViewController
+        let detailController = self.storyboard!.instantiateViewControllerWithIdentifier("MemeDetailViewController") as! MemeDetailViewController
         detailController.meme = self.memes[indexPath.row]
         // don't show the tabbar in the detailview
         detailController.hidesBottomBarWhenPushed = true
