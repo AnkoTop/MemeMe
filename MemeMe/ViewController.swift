@@ -128,9 +128,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         self.presentViewController(activityViewController, animated: true, completion: nil)
     }
     
-    func saveImage(activityType:String!, completed: Bool, returnedItems: [AnyObject]!, error: NSError!) {
+    func saveImage(activityType:String?, completed: Bool, returnedItems: [AnyObject]?, error: NSError?) {
         // create the meme object if the user didn't cancel
-        if completed { let memeImage = Meme(topText: topText.text, bottomText: bottomText.text, originalImageBin: UIImageJPEGRepresentation(imageToEdit.image!,1), memedImageBin: UIImageJPEGRepresentation(memedImage,1), context:sharedContext)
+        if completed { let memeImage = Meme(topText: topText.text!, bottomText: bottomText.text!, originalImageBin: UIImageJPEGRepresentation(imageToEdit.image!,1)!, memedImageBin: UIImageJPEGRepresentation(memedImage,1)!, context:sharedContext)
             // Add it to the memes array in the Application Delegate
             let object = UIApplication.sharedApplication().delegate
             let appDelegate = object as! AppDelegate

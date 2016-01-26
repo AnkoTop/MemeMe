@@ -11,7 +11,7 @@ import UIKit
 import CoreData
 
 
-class MemeCollectionViewController: UICollectionViewController, UICollectionViewDataSource {
+class MemeCollectionViewController: UICollectionViewController {
 
     var memes: [Meme]!
     
@@ -45,7 +45,7 @@ class MemeCollectionViewController: UICollectionViewController, UICollectionView
         // warn the user of immenent delete
         let removeAlert = UIAlertController(title: "Remove Meme", message: "The selected meme will be permanently removed.", preferredStyle: UIAlertControllerStyle.Alert)
         removeAlert.addAction(UIAlertAction(title: "Ok", style: .Default, handler: { (action: UIAlertAction) in
-            var indexpath = self.collectionView?.indexPathsForSelectedItems()
+   //         var indexpath = self.collectionView?.indexPathsForSelectedItems()
             // first remove it from the datasource (to prevent runtime error on difference in section count)
             self.memes.removeAtIndex(indexPath!.item)
             // now remove the item
